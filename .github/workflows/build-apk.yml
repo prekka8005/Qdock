@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./Qdock/gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+        working-directory: ./Qdock
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Qdock-debug-apk
+          path: Qdock/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      - name: Build Release APK (Unsigned)
+        run: ./gradlew :app:assembleRelease --stacktrace
+        working-directory: ./Qdock
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Qdock-release-apk
+          path: Qdock/app/build/outputs/apk/release/app-release-unsigned.apk
+          retention-days: 7
